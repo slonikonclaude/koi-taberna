@@ -1,0 +1,255 @@
+@import 'tailwindcss';
+
+/* ==========================================================================
+   Sistema de diseño — Koi Taberna
+   Fuente única de los colores, las tipografías y las curvas de animación.
+   Añadir aquí, nunca crear una segunda escala en un componente.
+   ========================================================================== */
+@theme {
+  /* Marca */
+  --color-cream: #f0e2d0; /* fondo principal */
+  --color-ink: #141210; /* texto y titulares */
+  --color-koi: #e4572e; /* naranja del carpa: relleno decorativo */
+  --color-koi-deep: #c4451f; /* misma familia, con contraste AA sobre blanco */
+  --color-koi-press: #ad3c1a; /* estado hover/activo del botón principal */
+  --color-koi-soft: #f08a5d; /* acento legible sobre fondo azul */
+  --color-wave: #1b3a5c; /* azul de las olas */
+  --color-wave-deep: #12293f; /* pie de página */
+  --color-foam: #f7f5f0; /* tarjetas sobre el fondo crema */
+  --color-gold: #d9a441; /* acento secundario y filetes */
+  --color-muted: #5a5048; /* texto secundario, 6:1 sobre crema */
+  --color-line: #d8c7b2; /* filete suave sobre crema */
+  --color-line-strong: #8a7b6b; /* borde de campos de formulario */
+
+  /* Tipografía */
+  --font-display: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /* Curvas. Las de CSS por defecto son demasiado planas. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --radius-card: 1.25rem;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --header-h: 4.25rem;
+  }
+
+  @media (min-width: 1024px) {
+    :root {
+      --header-h: 5rem;
+    }
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-cream);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* La barra fija inferior del móvil no debe tapar el final de la página. */
+  @media (max-width: 767px) {
+    body {
+      padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+    }
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Un solo anillo de foco para todo el sitio. */
+  :focus-visible {
+    outline: 3px solid var(--color-wave);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  /* Sobre fondo azul el anillo azul no se ve: se invierte. */
+  .on-dark :focus-visible {
+    outline-color: var(--color-cream);
+  }
+
+  /* Los anclas de navegación no quedan bajo la cabecera fija. */
+  [id] {
+    scroll-margin-top: calc(var(--header-h) + 1.5rem);
+  }
+
+  ::selection {
+    background-color: var(--color-koi);
+    color: #fff;
+  }
+
+  button,
+  a,
+  summary,
+  [role='button'] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Los números de la tabla de horarios se alinean en columna. */
+  table,
+  time,
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ==========================================================================
+   Aparición al hacer scroll
+   El estado oculto solo se aplica si hay JavaScript (data-js="on" lo pone un
+   script en línea). Sin JS todo se ve igual, solo que sin transición.
+   ========================================================================== */
+[data-reveal] {
+  transition:
+    opacity 620ms var(--ease-out),
+    transform 620ms var(--ease-out);
+}
+
+[data-js='on'] [data-reveal]:not([data-visible='true']) {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-js='on'] [data-reveal]:not([data-visible='true']) {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   Diálogo de reserva
+   <dialog> nativo: el foco queda atrapado, Esc cierra y el fondo se vuelve
+   inerte sin una línea de JavaScript para ello.
+   ========================================================================== */
+.reserve-dialog {
+  --enter-y: 1.5rem;
+  position: fixed;
+  inset: 0;
+  /* En móvil queda pegado abajo, como una hoja. */
+  margin: auto auto 0;
+  width: 100%;
+  max-width: 100%;
+  max-height: min(92dvh, 46rem);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  opacity: 0;
+  transform: translateY(var(--enter-y));
+  transition:
+    opacity 260ms var(--ease-out),
+    transform 300ms var(--ease-drawer),
+    overlay 300ms allow-discrete,
+    display 300ms allow-discrete;
+}
+
+@media (max-width: 640px) {
+  .reserve-dialog {
+    /* Entra desde abajo: el 100% es su propia altura, sea cual sea. */
+    --enter-y: 100%;
+  }
+}
+
+@media (min-width: 641px) {
+  .reserve-dialog {
+    margin: auto;
+    max-width: 34rem;
+  }
+}
+
+.reserve-dialog[open] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@starting-style {
+  .reserve-dialog[open] {
+    opacity: 0;
+    transform: translateY(var(--enter-y));
+  }
+}
+
+.reserve-dialog::backdrop {
+  background-color: rgb(18 41 63 / 0.55);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  transition:
+    opacity 260ms var(--ease-out),
+    overlay 300ms allow-discrete,
+    display 300ms allow-discrete;
+}
+
+.reserve-dialog[open]::backdrop {
+  opacity: 1;
+}
+
+@starting-style {
+  .reserve-dialog[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+/* La página no se mueve detrás del diálogo abierto. */
+body:has(dialog[open]) {
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Utilidades puntuales
+   ========================================================================== */
+
+/* Barra de categorías de la carta: scroll horizontal sin barra visible. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Enlace de salto para teclado, visible solo al enfocarlo. */
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 100;
+  transform: translateY(-200%);
+  transition: transform 160ms var(--ease-out);
+}
+.skip-link:focus-visible {
+  transform: translateY(0);
+}

@@ -1,0 +1,15 @@
+node_modules
+.next
+out
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+.env*.local
+.vercel
+
+# Copia de verificación: duplica app/, components/, lib/ y content/. No aporta
+# nada al sitio publicado y despista a quien lea el repositorio.
+.verify-docs
+
+# Configuración local del asistente, ajena al proyecto.
+.claude

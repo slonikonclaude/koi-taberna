@@ -1,0 +1,75 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # Permite lanzar el despliegue a mano desde la pestaña Actions.
+  workflow_dispatch:
+
+# Permisos mínimos que necesita la acción oficial de Pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Si se empujan dos commits seguidos, termina el despliegue en curso y publica
+# el último. No se cancela a mitad para no dejar el sitio a medias.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Configurar GitHub Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Compilar el sitio estático
+        env:
+          # `configure-pages` deduce la URL real del sitio de la configuración
+          # del repositorio, así que estas dos líneas valen para los tres casos
+          # sin tocar nada:
+          #
+          #   repo de proyecto  → base_path '/koi-taberna', origin USUARIO.github.io
+          #   repo USUARIO.github.io → base_path '/'  (next.config lo normaliza a '')
+          #   dominio propio    → base_path '/', origin https://tu-dominio
+          #
+          NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          NEXT_PUBLIC_SITE_URL: ${{ steps.pages.outputs.origin }}
+        run: npm run build
+
+      - name: Desactivar Jekyll
+        # GitHub Pages ignora las carpetas que empiezan por guion bajo y Next
+        # publica todo el JS y el CSS en `_next/`. Este fichero lo desactiva.
+        # Ya viene en public/, pero se reescribe aquí por si acaso.
+        run: touch out/.nojekyll
+
+      # ⚠️ No subir esta acción a v4 o superior sin añadir
+      # `include-hidden-files: true`. A partir de v4 el empaquetado excluye los
+      # ficheros que empiezan por punto, y se perdería el `out/.nojekyll` que se
+      # acaba de crear — el sitio saldría publicado sin estilos.
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

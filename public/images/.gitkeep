@@ -1,0 +1,8 @@
+# Las fotos reales van aquí.
+#
+# 1. Copia el fichero en esta carpeta, p. ej. `hero.jpg`.
+# 2. Abre `content/images.ts` y escribe la ruta en el hueco correspondiente:
+#    `src: '/images/hero.jpg'`.
+# 3. Revisa que `width` y `height` coincidan con el tamaño real del fichero.
+#
+# Formatos recomendados: .webp o .jpg, con el lado largo entre 1000 y 1600 px.
